@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BMI Calculator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0d3b0d 0%, #1a5c1a 40%, #2d8a2d 100%);
+      color: #1a3a1a;
+      padding: 1rem;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.6rem;
+      color: #1a5c1a;
+      margin-bottom: 0.3rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #6b8f6b;
+      margin-bottom: 1.8rem;
+    }
+
+    .unit-toggle {
+      display: flex;
+      background: #e8f5e9;
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 1.5rem;
+    }
+
+    .unit-toggle button {
+      flex: 1;
+      padding: 0.5rem;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #4a7a4a;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .unit-toggle button.active {
+      background: #2e7d32;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(46, 125, 50, 0.3);
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #4a7a4a;
+      margin-bottom: 0.3rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .field { margin-bottom: 1.2rem; }
+
+    .input-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .input-row .field { flex: 1; margin-bottom: 0; }
+
+    input {
+      width: 100%;
+      padding: 0.7rem 0.9rem;
+      border: 2px solid #c8e6c9;
+      border-radius: 10px;
+      font-size: 1rem;
+      color: #1a3a1a;
+      background: #f1f8e9;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+
+    input:focus { border-color: #2e7d32; }
+
+    input.invalid { border-color: #c62828; background: #ffebee; }
+
+    .error-msg {
+      font-size: 0.75rem;
+      color: #c62828;
+      margin-top: 0.25rem;
+      min-height: 1rem;
+    }
+
+    button.calc {
+      width: 100%;
+      padding: 0.85rem;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #2e7d32, #43a047);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.2s;
+      box-shadow: 0 4px 15px rgba(46, 125, 50, 0.4);
+      margin-top: 0.5rem;
+    }
+
+    button.calc:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(46, 125, 50, 0.5); }
+    button.calc:active { transform: translateY(0); }
+
+    .result {
+      margin-top: 1.5rem;
+      text-align: center;
+      display: none;
+    }
+
+    .result.show { display: block; animation: fadeIn 0.3s ease; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .bmi-value {
+      font-size: 3rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .bmi-category {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-top: 0.4rem;
+    }
+
+    .bmi-range {
+      font-size: 0.78rem;
+      color: #6b8f6b;
+      margin-top: 0.3rem;
+    }
+
+    .bar-track {
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(to right, #1565c0, #2e7d32, #f9a825, #e65100, #b71c1c);
+      margin-top: 1rem;
+      position: relative;
+    }
+
+    .bar-indicator {
+      position: absolute;
+      top: -4px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid #1a3a1a;
+      transform: translateX(-50%);
+      transition: left 0.4s ease;
+    }
+
+    /* Category colors */
+    .cat-underweight { color: #1565c0; }
+    .cat-normal { color: #2e7d32; }
+    .cat-overweight { color: #f57f17; }
+    .cat-obese1 { color: #e65100; }
+    .cat-obese2 { color: #b71c1c; }
+    .cat-obese3 { color: #880e4f; }
+
+    @media (max-width: 440px) {
+      .card { padding: 1.8rem 1.2rem; }
+      .bmi-value { font-size: 2.4rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>BMI Calculator</h1>
+    <p class="subtitle">Calculate your Body Mass Index</p>
+
+    <div class="unit-toggle">
+      <button class="active" onclick="setUnit('metric')">Metric (kg/cm)</button>
+      <button onclick="setUnit('imperial')">Imperial (lb/in)</button>
+    </div>
+
+    <div id="fields-metric">
+      <div class="field">
+        <label for="weight-kg">Weight (kg)</label>
+        <input type="number" id="weight-kg" placeholder="e.g. 70" min="1" max="500" step="0.1">
+        <div class="error-msg" id="err-wkg"></div>
+      </div>
+      <div class="field">
+        <label for="height-cm">Height (cm)</label>
+        <input type="number" id="height-cm" placeholder="e.g. 175" min="30" max="300" step="0.1">
+        <div class="error-msg" id="err-hcm"></div>
+      </div>
+    </div>
+
+    <div id="fields-imperial" style="display:none">
+      <div class="field">
+        <label for="weight-lb">Weight (lb)</label>
+        <input type="number" id="weight-lb" placeholder="e.g. 154" min="1" max="1100" step="0.1">
+        <div class="error-msg" id="err-wlb"></div>
+      </div>
+      <div class="input-row">
+        <div class="field">
+          <label for="height-ft">Height (ft)</label>
+          <input type="number" id="height-ft" placeholder="5" min="1" max="9" step="1">
+        </div>
+        <div class="field">
+          <label for="height-in">Height (in)</label>
+          <input type="number" id="height-in" placeholder="9" min="0" max="11" step="0.1">
+        </div>
+      </div>
+      <div class="error-msg" id="err-himp"></div>
+    </div>
+
+    <button class="calc" onclick="calculate()">Calculate BMI</button>
+
+    <div class="result" id="result">
+      <div class="bmi-value" id="bmi-value">--</div>
+      <div class="bmi-category" id="bmi-category"></div>
+      <div class="bmi-range" id="bmi-range"></div>
+      <div class="bar-track">
+        <div class="bar-indicator" id="bar-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let unit = 'metric';
+
+    function setUnit(u) {
+      unit = u;
+      document.getElementById('fields-metric').style.display = u === 'metric' ? 'block' : 'none';
+      document.getElementById('fields-imperial').style.display = u === 'imperial' ? 'block' : 'none';
+      document.querySelectorAll('.unit-toggle button').forEach(b => b.classList.remove('active'));
+      document.querySelector(`.unit-toggle button:${u === 'metric' ? 'first' : 'last'}-child`).classList.add('active');
+      clearErrors();
+      document.getElementById('result').classList.remove('show');
+    }
+
+    function clearErrors() {
+      document.querySelectorAll('.error-msg').forEach(e => e.textContent = '');
+      document.querySelectorAll('input').forEach(e => e.classList.remove('invalid'));
+    }
+
+    function setError(id, inputId, msg) {
+      document.getElementById(id).textContent = msg;
+      if (inputId) document.getElementById(inputId).classList.add('invalid');
+    }
+
+    function calculate() {
+      clearErrors();
+      let weightKg, heightM, valid = true;
+
+      if (unit === 'metric') {
+        const w = parseFloat(document.getElementById('weight-kg').value);
+        const h = parseFloat(document.getElementById('height-cm').value);
+        if (!w || w <= 0 || w > 500) { setError('err-wkg', 'weight-kg', 'Enter a valid weight (1-500 kg)'); valid = false; }
+        if (!h || h <= 0 || h > 300) { setError('err-hcm', 'height-cm', 'Enter a valid height (30-300 cm)'); valid = false; }
+        weightKg = w;
+        heightM = h / 100;
+      } else {
+        const w = parseFloat(document.getElementById('weight-lb').value);
+        const ft = parseFloat(document.getElementById('height-ft').value) || 0;
+        const inch = parseFloat(document.getElementById('height-in').value) || 0;
+        if (!w || w <= 0 || w > 1100) { setError('err-wlb', 'weight-lb', 'Enter a valid weight (1-1100 lb)'); valid = false; }
+        const totalIn = ft * 12 + inch;
+        if (totalIn <= 0 || totalIn > 108) { setError('err-himp', null, 'Enter a valid height'); valid = false; }
+        weightKg = w * 0.453592;
+        heightM = totalIn * 0.0254;
+      }
+
+      if (!valid) return;
+
+      const bmi = weightKg / (heightM * heightM);
+      const rounded = Math.round(bmi * 10) / 10;
+
+      let category, catClass, range;
+      if (bmi < 18.5) { category = 'Underweight'; catClass = 'cat-underweight'; range = 'BMI < 18.5'; }
+      else if (bmi < 25) { category = 'Normal weight'; catClass = 'cat-normal'; range = '18.5 - 24.9'; }
+      else if (bmi < 30) { category = 'Overweight'; catClass = 'cat-overweight'; range = '25.0 - 29.9'; }
+      else if (bmi < 35) { category = 'Obese (Class I)'; catClass = 'cat-obese1'; range = '30.0 - 34.9'; }
+      else if (bmi < 40) { category = 'Obese (Class II)'; catClass = 'cat-obese2'; range = '35.0 - 39.9'; }
+      else { category = 'Obese (Class III)'; catClass = 'cat-obese3'; range = 'BMI >= 40'; }
+
+      const valEl = document.getElementById('bmi-value');
+      valEl.textContent = rounded;
+      valEl.className = 'bmi-value ' + catClass;
+
+      const catEl = document.getElementById('bmi-category');
+      catEl.textContent = category;
+      catEl.className = 'bmi-category ' + catClass;
+
+      document.getElementById('bmi-range').textContent = range;
+
+      // Position indicator: map BMI 10-50 to 0%-100%
+      const pct = Math.min(100, Math.max(0, ((bmi - 10) / 40) * 100));
+      document.getElementById('bar-indicator').style.left = pct + '%';
+
+      document.getElementById('result').classList.add('show');
+    }
+
+    // Allow Enter key to trigger calculation
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
+  </script>
+</body>
+</html>
